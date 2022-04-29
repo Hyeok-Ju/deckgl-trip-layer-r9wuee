@@ -12,13 +12,9 @@ import { ScatterplotLayer } from '@deck.gl/layers';
 const MAPBOX_TOKEN = `pk.eyJ1Ijoic3BlYXI1MzA2IiwiYSI6ImNremN5Z2FrOTI0ZGgycm45Mzh3dDV6OWQifQ.kXGWHPRjnVAEHgVgLzXn2g`; // eslint-disable-line
 
 // Source data CSV
-const DATA_URL = {
-  BUILDINGS:
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/buildings.json', // eslint-disable-line
-  TRIPS:
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/trips-v7.json', // eslint-disable-line
-  POINTS:
-    'https://raw.githubusercontent.com/pbeshai/deckgl-point-animation/master/src/data/libraries.json',
+const DATA_FILE = {
+  TRIPS: require('./trips.json'),
+  POINTS: require('./empty.json'),
 };
 
 const ambientLight = new AmbientLight({
@@ -89,7 +85,7 @@ export default class App extends Component {
       loopLength = 1800, // unit corresponds to the timestamp in source data
       animationSpeed = 30, // unit time per second
     } = this.props;
-    const timestamp = Date.now() / 1000;
+    const timestamp = Date.now() / 5000;
     const loopTime = loopLength / animationSpeed;
 
     this.setState({
@@ -102,9 +98,8 @@ export default class App extends Component {
 
   _renderLayers() {
     const {
-      buildings = DATA_URL.BUILDINGS,
-      trips = DATA_URL.TRIPS,
-      points = DATA_URL.POINTS,
+      trips = DATA_FILE.TRIPS,
+      points = DATA_FILE.POINTS,
       trailLength = 180,
       theme = DEFAULT_THEME,
     } = this.props;
@@ -128,29 +123,18 @@ export default class App extends Component {
         opacity: 0.3,
         widthMinPixels: 5,
         rounded: true,
-        trailLength: 50,
+        trailLength: 7,
         currentTime: this.state.time,
         shadowEnabled: false,
-      }),
-      ,
-      new PolygonLayer({
-        id: 'buildings',
-        data: buildings,
-        extruded: true,
-        wireframe: false,
-        opacity: 0.5,
-        getPolygon: (f) => f.polygon,
-        getElevation: (f) => f.height,
-        getFillColor: theme.buildingColor,
-        material: theme.material,
       }),
 
       new ScatterplotLayer({
         id: 'scatterplot',
         data: points, // load data from server
-        getPosition: (d) => d.position, // get lng,lat from each point
-        getColor: (d) => [0, 188, 255],
-        getRadius: (d) => 25,
+        getPosition: (d) => d.path, // get lng,lat from each point
+        //getTimestamps: (d) => d.timestamps,
+        getColor: (d) => [255, 100, 100],
+        getRadius: (d) => 100,
         opacity: 0.9,
         pickable: false,
         radiusMinPixels: 0.25,

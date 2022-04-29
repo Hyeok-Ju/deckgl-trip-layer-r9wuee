@@ -7,18 +7,16 @@ import DeckGL from '@deck.gl/react';
 import { PolygonLayer } from '@deck.gl/layers';
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
+import {DataFilterExtension} from '@deck.gl/extensions';
+
 
 // Set your mapbox token here
 const MAPBOX_TOKEN = `pk.eyJ1Ijoic3BlYXI1MzA2IiwiYSI6ImNremN5Z2FrOTI0ZGgycm45Mzh3dDV6OWQifQ.kXGWHPRjnVAEHgVgLzXn2g`; // eslint-disable-line
 
 // Source data CSV
-const DATA_URL = {
-  BUILDINGS:
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/buildings.json', // eslint-disable-line
-  TRIPS:
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/trips-v7.json', // eslint-disable-line
-  POINTS:
-    'https://raw.githubusercontent.com/pbeshai/deckgl-point-animation/master/src/data/libraries.json',
+const DATA_FILE = {
+  TRIPS: require('./trips.json'),
+  POINTS: require('./empty.json'),
 };
 
 const ambientLight = new AmbientLight({
@@ -75,21 +73,6 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    fetch(DATA_URL.TRIPS)
-      .then((response) => response.json())
-      .then((findresponse) => {
-        const dict = {};
-        let idx = 0;
-        findresponse.map((item) => {
-          var path = item.path[item.path.length - 1];
-          var timestamp = item.timestamps[item.timestamps.length - 1];
-          dict[idx] = [timestamp, path];
-          idx += 1;
-        });
-        this.setState({
-          last: dict,
-        });
-      });
     this._animate();
   }
 
@@ -104,7 +87,7 @@ export default class App extends Component {
       loopLength = 1800, // unit corresponds to the timestamp in source data
       animationSpeed = 30, // unit time per second
     } = this.props;
-    const timestamp = Date.now() / 1000;
+    const timestamp = Date.now() / 5000;
     const loopTime = loopLength / animationSpeed;
 
     this.setState({
@@ -117,23 +100,12 @@ export default class App extends Component {
 
   _renderLayers() {
     const {
-      buildings = DATA_URL.BUILDINGS,
-      trips = DATA_URL.TRIPS,
-      points = DATA_URL.POINTS,
+      trips = DATA_FILE.TRIPS,
+      points = DATA_FILE.POINTS,
       trailLength = 180,
       theme = DEFAULT_THEME,
     } = this.props;
-
-    const arr = [];
-    if (typeof this.state.last === 'object') {
-      Object.keys(this.state.last).map((k, v) => {
-        var timestamp = this.state.last[k][0];
-        var path = this.state.last[k][1];
-        if (this.state.time >= timestamp) {
-          arr.push(path);
-        }
-      });
-    }
+    const {filterValue} = this.state;
 
     return [
       // This is only needed when using shadow effects
@@ -154,34 +126,27 @@ export default class App extends Component {
         opacity: 0.3,
         widthMinPixels: 5,
         rounded: true,
-        trailLength: 50,
+        trailLength: 7,
         currentTime: this.state.time,
         shadowEnabled: false,
-      }),
-      ,
-      new PolygonLayer({
-        id: 'buildings',
-        data: buildings,
-        extruded: true,
-        wireframe: false,
-        opacity: 0.5,
-        getPolygon: (f) => f.polygon,
-        getElevation: (f) => f.height,
-        getFillColor: theme.buildingColor,
-        material: theme.material,
       }),
 
       new ScatterplotLayer({
         id: 'scatterplot',
-        data: arr, // load data from server
-        getPosition: (d) => [d[0], d[1]], // get lng,lat from each point
-        getColor: (d) => [255, 255, 255],
-        getRadius: (d) => 25,
+        data: points, // load data from server
+        getPosition: (d) => d.path, // get lng,lat from each point
+        getFilterValue: d => d.timestamp,
+        //filterRange: [[0, 1800]],
+        //extensions: [new DataFilterExtension({filterSize: 2})],
+        getColor: (d) => [255, 200, 0],
+        getRadius: (d) => 50,
         opacity: 0.9,
         pickable: false,
-        radiusMinPixels: 3,
+        radiusMinPixels: 0.25,
         radiusMaxPixels: 30,
-      }),
+
+      }    
+      ),
     ];
   }
 
