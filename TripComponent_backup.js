@@ -7,6 +7,7 @@ import DeckGL from '@deck.gl/react';
 import { PolygonLayer } from '@deck.gl/layers';
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
+import { DataFilterExtension } from '@deck.gl/extensions';
 
 // Set your mapbox token here
 const MAPBOX_TOKEN = `pk.eyJ1Ijoic3BlYXI1MzA2IiwiYSI6ImNremN5Z2FrOTI0ZGgycm45Mzh3dDV6OWQifQ.kXGWHPRjnVAEHgVgLzXn2g`; // eslint-disable-line
@@ -103,6 +104,7 @@ export default class App extends Component {
       trailLength = 180,
       theme = DEFAULT_THEME,
     } = this.props;
+    const { filterValue } = this.state;
 
     return [
       // This is only needed when using shadow effects
@@ -132,9 +134,11 @@ export default class App extends Component {
         id: 'scatterplot',
         data: points, // load data from server
         getPosition: (d) => d.path, // get lng,lat from each point
-        //getTimestamps: (d) => d.timestamps,
-        getColor: (d) => [255, 100, 100],
-        getRadius: (d) => 100,
+        getFilterValue: (d) => d.timestamp,
+        //filterRange: [[0, 1800]],
+        //extensions: [new DataFilterExtension({filterSize: 2})],
+        getColor: (d) => [255, 200, 0],
+        getRadius: (d) => 50,
         opacity: 0.9,
         pickable: false,
         radiusMinPixels: 0.25,
