@@ -66,7 +66,7 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: 0,
+      time: 360,
     };
   }
 
@@ -133,15 +133,12 @@ export default class App extends Component {
         id: 'scatterplot',
         data: points, // load data from server
         getPosition: (d) => d.path, // get lng,lat from each point
-        getFilterValue: (d) => d.timestamp,
-        //filterRange: [[0, 1800]],
-        //extensions: [new DataFilterExtension({filterSize: 2})],
-        getColor: (d) => [255, 200, 0],
-        getRadius: (d) => 50,
+        getColor: [255, 200, 0],
+        getRadius: (d) => d.timestamp[0],
         opacity: 0.9,
         pickable: false,
-        radiusMinPixels: 0.25,
-        radiusMaxPixels: 30,
+        radiusMinPixels: (d) => d.timestamp[0],
+        radiusMaxPixels: (d) => d.timestamp[1],
       }),
     ];
   }
