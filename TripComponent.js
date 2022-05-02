@@ -157,6 +157,10 @@ export default class App extends Component {
           preventStyleDiffing={true}
           mapboxApiAccessToken={MAPBOX_TOKEN}
         />
+        <h1 style={{ color: 'red' }}>
+          TIME : {parseInt(Math.round(this.state.time) / 60) % 24} :{' '}
+          {Math.round(this.state.time) % 60}
+        </h1>
       </DeckGL>
     );
   }
