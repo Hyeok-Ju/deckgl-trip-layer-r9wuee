@@ -69,6 +69,7 @@ export default class App extends Component {
       animationSpeed = 10, // unit time per second
     } = this.props;
     const timestamp = Date.now() / 1000;
+    console.log(timestamp);
     const loopTime = loopLength / animationSpeed;
     this.setState({
       time: ((timestamp % loopTime) / loopTime) * loopLength,
