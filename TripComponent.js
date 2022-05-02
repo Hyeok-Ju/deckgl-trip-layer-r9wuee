@@ -49,7 +49,7 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: 360,
+      time: 0,
     };
   }
 
@@ -65,14 +65,14 @@ export default class App extends Component {
 
   _animate() {
     const {
-      loopLength = 1800, // unit corresponds to the timestamp in source data
+      loopLength = 1440, // unit corresponds to the timestamp in source data
       animationSpeed = 10, // unit time per second
     } = this.props;
     const timestamp = Date.now() / 1000;
     console.log(timestamp);
     const loopTime = loopLength / animationSpeed;
     this.setState({
-      time: ((timestamp % loopTime) / loopTime) * loopLength,
+      time: (((timestamp % loopTime) / loopTime) * loopLength) + 360,
     });
     this._animationFrame = window.requestAnimationFrame(
       this._animate.bind(this)
