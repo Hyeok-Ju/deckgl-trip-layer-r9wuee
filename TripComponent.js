@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { StaticMap } from 'react-map-gl';
-import { AmbientLight, PointLight, LightingEffect } from '@deck.gl/core';
+import { AmbientLight, LightingEffect } from '@deck.gl/core';
 import DeckGL from '@deck.gl/react';
-import { PolygonLayer } from '@deck.gl/layers';
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
 
@@ -21,13 +20,7 @@ const ambientLight = new AmbientLight({
   intensity: 1.0,
 });
 
-const pointLight = new PointLight({
-  color: [255, 255, 255],
-  intensity: 2.0,
-  position: [-74.05, 40.7, 8000],
-});
-
-const lightingEffect = new LightingEffect({ ambientLight, pointLight });
+const lightingEffect = new LightingEffect({ ambientLight });
 
 const material = {
   ambient: 0.1,
@@ -56,7 +49,7 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: 1,
+      time: 360,
     };
   }
 
@@ -77,11 +70,9 @@ export default class App extends Component {
     } = this.props;
     const timestamp = Date.now() / 1000;
     const loopTime = loopLength / animationSpeed;
-
     this.setState({
       time: ((timestamp % loopTime) / loopTime) * loopLength,
     });
-    // console.log(((timestamp % loopTime) / loopTime) * loopLength);
     this._animationFrame = window.requestAnimationFrame(
       this._animate.bind(this)
     );
