@@ -1,4 +1,3 @@
-/* global window */
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { StaticMap } from 'react-map-gl';
@@ -7,15 +6,14 @@ import DeckGL from '@deck.gl/react';
 import { PolygonLayer } from '@deck.gl/layers';
 import { TripsLayer } from '@deck.gl/geo-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
-import { DataFilterExtension } from '@deck.gl/extensions';
 
 // Set your mapbox token here
 const MAPBOX_TOKEN = `pk.eyJ1Ijoic3BlYXI1MzA2IiwiYSI6ImNremN5Z2FrOTI0ZGgycm45Mzh3dDV6OWQifQ.kXGWHPRjnVAEHgVgLzXn2g`; // eslint-disable-line
 
 // Source data CSV
-const DATA_FILE = {
+const DATA_JSON = {
   TRIPS: require('./trips.json'),
-  POINTS: require('./empty.json'),
+  EMPTY: require('./empty.json'),
 };
 
 const ambientLight = new AmbientLight({
@@ -49,25 +47,16 @@ const DEFAULT_THEME = {
 const INITIAL_VIEW_STATE = {
   longitude: 126.9779692,
   latitude: 37.566535,
-  zoom: 9,
+  zoom: 9.5,
   pitch: 30,
   bearing: 0,
 };
-
-const landCover = [
-  [
-    [-74.0, 40.7],
-    [-74.02, 40.7],
-    [-74.02, 40.72],
-    [-74.0, 40.72],
-  ],
-];
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      time: 0,
+      time: 1,
     };
   }
 
@@ -84,14 +73,15 @@ export default class App extends Component {
   _animate() {
     const {
       loopLength = 1800, // unit corresponds to the timestamp in source data
-      animationSpeed = 30, // unit time per second
+      animationSpeed = 10, // unit time per second
     } = this.props;
-    const timestamp = Date.now() / 5000;
+    const timestamp = Date.now() / 1000;
     const loopTime = loopLength / animationSpeed;
 
     this.setState({
       time: ((timestamp % loopTime) / loopTime) * loopLength,
     });
+    // console.log(((timestamp % loopTime) / loopTime) * loopLength);
     this._animationFrame = window.requestAnimationFrame(
       this._animate.bind(this)
     );
@@ -99,22 +89,32 @@ export default class App extends Component {
 
   _renderLayers() {
     const {
-      trips = DATA_FILE.TRIPS,
-      points = DATA_FILE.POINTS,
-      trailLength = 180,
+      trips = DATA_JSON.TRIPS,
+      empty = DATA_JSON.EMPTY,
+      trailLength = 10,
       theme = DEFAULT_THEME,
     } = this.props;
-    const { filterValue } = this.state;
+
+    const arr = [];
+    if (typeof empty === 'object') {
+      Object.keys(empty).map((k) => {
+        var item = empty[k];
+        var loc = item.path;
+        if (Object.keys(item).length === 2) {
+          var start = item.timestamp[0];
+          var end = item.timestamp[1];
+        } else {
+          var start = item.timestamp[0];
+          var end = item.timestamp[0];
+        }
+
+        if ((this.state.time >= start) & (this.state.time <= end)) {
+          arr.push(loc);
+        }
+      });
+    }
 
     return [
-      // This is only needed when using shadow effects
-      new PolygonLayer({
-        id: 'ground',
-        data: landCover,
-        getPolygon: (f) => f,
-        stroked: false,
-        getFillColor: [0, 0, 0, 0],
-      }),
       new TripsLayer({
         id: 'trips',
         data: trips,
@@ -125,23 +125,20 @@ export default class App extends Component {
         opacity: 0.3,
         widthMinPixels: 5,
         rounded: true,
-        trailLength: 7,
+        trailLength: trailLength,
         currentTime: this.state.time,
         shadowEnabled: false,
       }),
 
       new ScatterplotLayer({
         id: 'scatterplot',
-        data: points, // load data from server
-        getPosition: (d) => d.path, // get lng,lat from each point
-        getFilterValue: (d) => d.timestamp,
-        //filterRange: [[0, 1800]],
-        //extensions: [new DataFilterExtension({filterSize: 2})],
-        getColor: (d) => [255, 200, 0],
-        getRadius: (d) => 50,
+        data: arr, // load data from server
+        getPosition: (d) => [d[0], d[1]], // get lng,lat from each point
+        getColor: (d) => [255, 255, 255],
+        getRadius: (d) => 25,
         opacity: 0.9,
         pickable: false,
-        radiusMinPixels: 0.25,
+        radiusMinPixels: 3,
         radiusMaxPixels: 30,
       }),
     ];
